@@ -167,13 +167,13 @@
 			state.current_s = 0
 			state.questions = []
 			display(state)
+			playAlarm()
 			clearTimeout(st)
 			st = setTimeout(playAlarm, 6 * 2 * 1000)
 		})
 
 		$("#next").click(function(){
 			next()
-			playAlarm()
 			clearTimeout(st)
 			st = setTimeout(playAlarm, 6 * 2 * 1000)
 		})

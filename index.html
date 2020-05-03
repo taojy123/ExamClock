@@ -169,13 +169,13 @@
 			display(state)
 			playAlarm()
 			clearTimeout(st)
-			st = setTimeout(playAlarm, 6 * 2 * 1000)
+			st = setTimeout(playAlarm, 6 * 60 * 1000)
 		})
 
 		$("#next").click(function(){
 			next()
 			clearTimeout(st)
-			st = setTimeout(playAlarm, 6 * 2 * 1000)
+			st = setTimeout(playAlarm, 6 * 60 * 1000)
 		})
 
 		$("#pause").click(function(){
@@ -188,7 +188,7 @@
 				state.status = 1
 				$(this).html("暂停")
 				clearTimeout(st)
-				st = setTimeout(playAlarm, (6 * 2 - state.current_s) * 1000 )
+				st = setTimeout(playAlarm, (6 * 60 - state.current_s) * 1000 )
 			}
 			display(state)
 		})

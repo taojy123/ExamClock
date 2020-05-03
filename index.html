@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Exam Clock</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="https://cdn.tslow.cn/AthenaTools/static/css/bootstrap4.min.css">
+</head>
+<body>
+
+	<div class="container p-3">
+
+		<div id="total" class="alert alert-primary" role="alert">
+			总用时 1 小时 5 分 15 秒, 已完成 5 道题
+		</div>
+		<div id="current" class="alert alert-warning" role="alert">
+			此题已用时 3 分 18 秒
+		</div>
+
+		<div>
+			<a id="begin" href="#" class="btn btn-success btn-lg w-100">开始计时</a>
+			<a id="next" href="#" class="btn btn-primary btn-lg w-100">下一题</a>
+		</div>
+
+		<div id="toolbar" style="position: absolute; bottom: 30px; right: 30px">
+			<a id="pause" href="#" class="btn btn-outline-warning btn-sm">暂停</a>
+			<a id="finish" href="#" class="btn btn-outline-success btn-sm">结束</a>
+		</div>
+	</div>
+
+	<!-- <audio controls>
+		not support audio!
+		<source src="http://qiniu.athenagu.com/alarm.mp3" type="audio/mpeg">
+	</audio> -->
+
+
+	<script src="https://cdn.tslow.cn/AthenaTools/static/js/jquery-1.10.2.js"></script>
+	<!-- <script src="https://cdn.tslow.cn/AthenaTools/static/js/bootstrap4.min.js"></script> -->
+	<script type="text/javascript">
+		mp3 = new Audio("http://qiniu.athenagu.com/alarm.mp3")
+    	mp3.load()
+    	st = setTimeout(function(){}, 1)
+
+		function getState() {
+			s = localStorage.getItem("state")
+			if (s) {
+				state = JSON.parse(s)
+			} else {
+				state = {
+					status: 0,
+					total_s: 0,
+					current_s: 0,
+					questions: []
+				}
+				localStorage.setItem("state", JSON.stringify(state))
+			}
+			console.log(state)
+			return state
+		}
+
+		function display(state) {
+			if (!state) {
+				state = getState()
+			}
+			total_h = parseInt(state.total_s / 3600)
+			total_m = parseInt(state.total_s % 3600 / 60)
+			total_s = parseInt(state.total_s % 60)
+			total_time = " "
+			if (total_h) {
+				total_time += total_h + " 小时"
+			}
+			if (total_m) {
+				total_time += total_m + " 分"
+			}
+			total_time += total_s + " 秒"
+			question_count = state.questions.length
+			current_h = parseInt(state.current_s / 3600)
+			current_m = parseInt(state.current_s % 3600 / 60)
+			current_s = parseInt(state.current_s % 60)
+			current_time = " "
+			if (current_h) {
+				current_time += current_h + " 小时"
+			}
+			if (current_m) {
+				current_time += current_m + " 分"
+			}
+			current_time += current_s + " 秒"
+			text1 = "总用时" + total_time + ", 已完成 " + question_count + " 道题"
+			text2 = "此题已用时" + current_time
+			text3 = ""
+			for (i=1; i<=question_count; i++) {
+				text3 += "第" + i + "题用时 " + state.questions[i-1] + "<br>"
+			}
+			if (state.status == 0) {
+				// 开始
+				$("#total").html("准备就绪")
+				$("#current").html("请点击 开始 按钮")
+				$("#begin").show()
+				$("#next").hide()
+				$("#toolbar").hide()
+			} else if (state.status == 1) {
+				// 进行中
+				$("#total").html(text1)
+				$("#current").html(text2)
+				$("#begin").hide()
+				$("#next").show()
+				$("#toolbar").show()
+			} else if (state.status == 2) {
+				// 暂停
+				$("#total").html(text1)
+				$("#current").html(text2)
+				$("#begin").hide()
+				$("#next").hide()
+				$("#toolbar").show()
+			} else if (state.status == 3) {
+				// 结束
+				$("#begin").html("重新开始")
+				$("#total").html(text1)
+				$("#current").html(text3)
+				$("#begin").show()
+				$("#next").hide()
+				$("#toolbar").hide()
+			}
+			localStorage.setItem("state", JSON.stringify(state))
+		}
+
+		function timer() {
+			state = getState()
+			if (state.status == 1) {
+				state.total_s += 1
+				state.current_s += 1
+				display(state)
+			}
+		}
+
+		function next() {
+			state = getState()
+			if (state.status == 1) {
+				current_h = parseInt(state.current_s / 3600)
+				current_m = parseInt(state.current_s % 3600 / 60)
+				current_s = parseInt(state.current_s % 60)
+				current_time = " "
+				if (current_h) {
+					current_time += current_h + " 小时"
+				}
+				if (current_m) {
+					current_time += current_m + " 分"
+				}
+				current_time += current_s + " 秒"
+				state.current_s = 0
+				state.questions.push(current_time)
+			}
+			display(state)
+		}
+
+		function playAlarm() {
+			console.log("clock alarm!!!")
+			mp3.play()
+		}
+
+		display()
+
+		$("#begin").click(function(){
+			state = getState()
+			state.status = 1
+			state.total_s = 0
+			state.current_s = 0
+			state.questions = []
+			display(state)
+			clearTimeout(st)
+			st = setTimeout(playAlarm, 6 * 60 * 1000)
+		})
+
+		$("#next").click(function(){
+			next()
+			clearTimeout(st)
+			st = setTimeout(playAlarm, 6 * 60 * 1000)
+		})
+
+		$("#pause").click(function(){
+			state = getState()
+			if (state.status == 1) {
+				state.status = 2
+				$(this).html("继续")
+				clearTimeout(st)
+			} else if (state.status == 2) {
+				state.status = 1
+				$(this).html("暂停")
+				clearTimeout(st)
+				st = setTimeout(playAlarm, (6 * 60 - state.current_s) * 1000 )
+			}
+			display(state)
+		})
+
+		$("#finish").click(function(){
+			if (confirm("确定要结束计时吗?")){
+				next()
+				state = getState()
+				state.status = 3
+				display(state)
+				clearTimeout(st)
+			}
+		})
+
+		setInterval(timer, 1000)
+
+	</script>
+</body>
+</html>
